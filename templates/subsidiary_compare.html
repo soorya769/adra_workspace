@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="subsidiary-page">
+
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-arrow-left-right"></i> Subsidiary Compare</h2>
+        <p class="text-muted">Compare values across multiple text boxes. Values can be comma-separated or space-separated.</p>
+    </div>
+</div>
+
+<!-- REST OF YOUR CODE - EXACTLY AS YOU HAD IT - NO CHANGES BELOW THIS LINE -->
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="post" id="subsidiaryForm">
+<div class="row subsidiary-grid">
+                <!-- Textbox 1 (Required) -->
+                <div class="col-md-6 mb-4">
+                    <div class="form-group">
+                        <label for="val1" class="form-label">
+                            <strong>Textbox 1 <span class="text-danger">*</span></strong>
+                            <span class="badge bg-primary">Reference</span>
+                        </label>
+                        <textarea name="val1" id="val1" rows="5" class="form-control" 
+                                  placeholder="Enter values (comma or space separated)">{{ values.val1 | default('') }}</textarea>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i> This will be used as the reference for comparison
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Textbox 2 (Required) -->
+                <div class="col-md-6 mb-4">
+                    <div class="form-group">
+                        <label for="val2" class="form-label">
+                            <strong>Textbox 2 <span class="text-danger">*</span></strong>
+                        </label>
+                        <textarea name="val2" id="val2" rows="5" class="form-control" 
+                                  placeholder="Enter values (comma or space separated)">{{ values.val2 | default('') }}</textarea>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i> Required for comparison
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Optional Textboxes -->
+                <div class="col-md-6 mb-4">
+                    <div class="form-group">
+                        <label for="val3" class="form-label">
+                            <strong>Textbox 3</strong>
+                            <span class="badge bg-secondary">Optional</span>
+                        </label>
+                        <textarea name="val3" id="val3" rows="4" class="form-control" 
+                                  placeholder="Optional values">{{ values.val3 | default('') }}</textarea>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="form-group">
+                        <label for="val4" class="form-label">
+                            <strong>Textbox 4</strong>
+                            <span class="badge bg-secondary">Optional</span>
+                        </label>
+                        <textarea name="val4" id="val4" rows="4" class="form-control" 
+                                  placeholder="Optional values">{{ values.val4 | default('') }}</textarea>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="form-group">
+                        <label for="val5" class="form-label">
+                            <strong>Textbox 5</strong>
+                            <span class="badge bg-secondary">Optional</span>
+                        </label>
+                        <textarea name="val5" id="val5" rows="4" class="form-control" 
+                                  placeholder="Optional values">{{ values.val5 | default('') }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex gap-2 mb-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-compare"></i> Compare Values
+                        </button>
+                        <button type="button" onclick="clearSubsidiary()" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                        <button type="button" onclick="fillWithSampleData()" class="btn btn-outline-info">
+                            <i class="bi bi-magic"></i> Load Sample
+                        </button>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-lightbulb"></i>
+                        <strong>Tip:</strong> Enter values separated by commas or spaces. 
+                        Example: "apple, banana, cherry" or "apple banana cherry"
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- RESULT CONTAINER -->
+<div id="resultSection" class="mt-4">
+    {% if result %}
+        {% if result.status == 'success' %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle-fill me-3 fs-4"></i>
+                    <div>
+                        <h5 class="alert-heading mb-1">{{ result.message }}</h5>
+                        <p class="mb-0">All values match perfectly across all text boxes.</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <i class="bi bi-check-all"></i> Comparison Summary
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        <i class="bi bi-check text-success"></i>
+                        All values are consistent across all provided text boxes.
+                    </p>
+                    <p class="card-text">
+                        <i class="bi bi-list-check text-success"></i>
+                        No missing or extra values found.
+                    </p>
+                </div>
+            </div>
+            
+        {% elif result.status == 'fail' %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-x-circle-fill me-3 fs-4"></i>
+                    <div>
+                        <h5 class="alert-heading mb-1">{{ result.message }}</h5>
+                        <p class="mb-0">Found differences between text boxes. See details below.</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            {% if result.details %}
+                <div class="row">
+                    {% for item in result.details %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card border-danger">
+                                <div class="card-header bg-danger text-white">
+                                    <i class="bi bi-exclamation-triangle"></i> {{ item.column }}
+                                </div>
+                                <div class="card-body">
+                                    {% if item.missing %}
+                                        <div class="mb-3">
+                                            <h6 class="text-danger">
+                                                <i class="bi bi-arrow-down-circle"></i> Missing Values
+                                            </h6>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                {% for v in item.missing %}
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger">
+                                                        {{ v }}
+                                                    </span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if item.extra %}
+                                        <div>
+                                            <h6 class="text-warning">
+                                                <i class="bi bi-arrow-up-circle"></i> Extra Values
+                                            </h6>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                {% for v in item.extra %}
+                                                    <span class="badge bg-warning-subtle text-warning border border-warning">
+                                                        {{ v }}
+                                                    </span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="card border-info mt-3">
+                    <div class="card-header bg-info text-white">
+                        <i class="bi bi-bar-chart"></i> Comparison Statistics
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1">
+                            <strong>Total differences found:</strong> {{ result.details|length }}
+                        </p>
+                        <p class="mb-0">
+                            <strong>Textboxes compared:</strong> {{ result.details|length + 1 }} 
+                            (including reference)
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+            
+        {% elif result.status == 'error' %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                    <div>
+                        <h5 class="alert-heading mb-1">Validation Error</h5>
+                        <p class="mb-0">{{ result.message }}</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-white">
+                    <i class="bi bi-info-circle"></i> Required Action
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        <i class="bi bi-arrow-right-circle"></i>
+                        Please fill in at least 2 text boxes to perform comparison.
+                    </p>
+                    <p class="card-text mb-0">
+                        <i class="bi bi-lightbulb"></i>
+                        Textboxes 1 and 2 are required. Textboxes 3-5 are optional.
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/subsidary.css') }}">
+<script>
+const form = document.getElementById('subsidiaryForm');
+
+const toast = (msg, type='info') => {
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'position-fixed bottom-0 end-0 p-3';
+        container.style.zIndex = '1050';
+        document.body.appendChild(container);
+    }
+
+    const el = document.createElement('div');
+    el.className = `toast text-bg-${type} border-0`;
+    el.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${msg}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    container.appendChild(el);
+    new bootstrap.Toast(el).show();
+    el.addEventListener('hidden.bs.toast', () => el.remove());
+};
+
+function clearSubsidiary() {
+    form.reset();
+    document.getElementById("resultSection").innerHTML = "";
+    document.getElementById("val1").focus();
+    toast('All fields cleared!');
+}
+
+function fillWithSampleData() {
+    const data = [
+        "apple, banana, cherry, date, elderberry",
+        "banana, cherry, date, apple",
+        "apple, banana, date, fig",
+        "apple, cherry, date, grape",
+        "apple, banana, cherry, date"
+    ];
+    form.querySelectorAll('textarea').forEach((ta, i) => ta.value = data[i] || "");
+    toast('Sample data loaded!', 'success');
+}
+
+// Auto resize
+form.querySelectorAll('textarea').forEach(t => {
+    t.addEventListener('input', () => {
+        t.style.height = 'auto';
+        t.style.height = t.scrollHeight + 'px';
+    });
+});
+
+// Validation
+form.addEventListener('submit', e => {
+    const filled = [...form.querySelectorAll('textarea')]
+        .filter(t => t.value.trim()).length;
+
+    if (filled < 2) {
+        e.preventDefault();
+        toast('Please fill in at least 2 text boxes.', 'warning');
+    }
+});
+</script>
+
+
+</div>
+{% endblock %}

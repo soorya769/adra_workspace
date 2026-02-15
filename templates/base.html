@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adra Workspace</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+</head>
+
+<body>
+
+<div class="app-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            <span>Adra Workspace</span>
+        </div>
+
+        <ul class="sidebar-menu">
+
+            <!-- Dashboard -->
+            <li class="menu-item nav-item" data-path="/">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </li>
+
+            <!-- Services Dropdown -->
+            <li class="dropdown" id="servicesDropdown">
+                <div class="dropdown-header">
+                    <i class="bi bi-tools"></i>
+                    <span>Services</span>
+                    <i class="bi bi-chevron-down chevron"></i>
+                </div>
+
+                <ul class="dropdown-menu" id="servicesMenu">
+                    <li class="nav-item" data-path="/file-verification">
+                        <i class="bi bi-files"></i>
+                        <span>File Verification</span>
+                    </li>
+                    <li class="nav-item" data-path="/character-enclose">
+                        <i class="bi bi-quote"></i>
+                        <span>Character Enclose</span>
+                    </li>
+                    <li class="nav-item" data-path="/subsidiary-compare">
+                        <i class="bi bi-arrow-left-right"></i>
+                        <span>Subsidiary Compare</span>
+                    </li>
+                </ul>
+            </li>
+
+            <!-- Logout -->
+            <li class="menu-item" onclick="handleLogout()" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </li>
+
+        </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="content-wrapper">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+</div>
+
+<script>
+// ================== LOGOUT ==================
+function handleLogout() {
+    ["isAuthenticated", "username", "loginTime"]
+        .forEach(key => sessionStorage.removeItem(key));
+    window.location.href = "/login";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const currentPath = window.location.pathname.replace(/\/$/, "") || "/";
+    const isAuthenticated = sessionStorage.getItem("isAuthenticated");
+
+    if (currentPath !== "/login" && isAuthenticated !== "true") {
+        return window.location.href = "/login";
+    }
+
+    const dropdown = document.getElementById("servicesDropdown");
+    const menu = document.getElementById("servicesMenu");
+    const header = dropdown?.querySelector(".dropdown-header");
+    const chevron = dropdown?.querySelector(".chevron");
+
+    const toggleDropdown = (open) => {
+        menu.classList.toggle("show", open);
+        dropdown.classList.toggle("open", open);
+        chevron.classList.toggle("bi-chevron-up", open);
+        chevron.classList.toggle("bi-chevron-down", !open);
+    };
+
+    // NAVIGATION
+    document.querySelectorAll(".nav-item").forEach(item => {
+        const path = item.dataset.path?.replace(/\/$/, "") || "/";
+
+        if (path === currentPath) {
+            item.classList.add("active");
+            if (menu.contains(item)) toggleDropdown(true);
+        }
+
+        item.addEventListener("click", () => {
+            if (item.dataset.path) window.location.href = item.dataset.path;
+        });
+    });
+
+    // DROPDOWN TOGGLE
+    header?.addEventListener("click", e => {
+        e.stopPropagation();
+        toggleDropdown(!menu.classList.contains("show"));
+    });
+
+    // CLOSE OUTSIDE
+    document.addEventListener("click", e => {
+        if (!dropdown?.contains(e.target)) toggleDropdown(false);
+    });
+});
+</script>
+
+
+</body>
+</html>

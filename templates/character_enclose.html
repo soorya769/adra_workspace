@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-quote"></i> Character Enclose</h2>
+        <p class="text-muted">Wrap text values in quotes for use in SQL, programming, or other applications.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow-sm mb-4">
+            
+            <div class="card-body">
+                <form method="POST" id="encloseForm" onsubmit="return false;">
+                    <div class="form-group mb-4">
+                        <label for="input_text" class="form-label">
+                            <strong>Enter your values:</strong>
+                            <span class="badge bg-info">Comma or new-line separated</span>
+                        </label>
+                      <textarea name="input_text" 
+                                  id="input_text" 
+                                  rows="6" 
+                                  class="form-control font-monospace" 
+                                  placeholder="apple, banana, cherry
+orange
+grape, mango
+peach">{{ input_text }}</textarea>
+                        <div class="form-text mt-2">
+                            <i class="bi bi-info-circle"></i> 
+                            Enter values separated by commas or new lines. Example: 
+                            <code>value1, value2, value3</code> or one per line.
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <!-- Enclosure Options -->
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 bg-light" style="height: 100%;">
+                                <label class="form-label fw-bold mb-3">📦 Enclosure Options:</label>
+                                <div class="ps-2">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="enclosure_type" id="doubleQuote" value="double" checked>
+                                        <label class="form-check-label" for="doubleQuote">
+                                            <code class="bg-white px-2 py-1 rounded border">"value"</code> Double quotes
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="enclosure_type" id="singleQuote" value="single">
+                                        <label class="form-check-label" for="singleQuote">
+                                            <code class="bg-white px-2 py-1 rounded border">'value'</code> Single quotes
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="enclosure_type" id="backtick" value="backtick">
+                                        <label class="form-check-label" for="backtick">
+                                            <code class="bg-white px-2 py-1 rounded border">`value`</code> Backticks
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Separator Options -->
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 bg-light" style="height: 100%;">
+                                <label class="form-label fw-bold mb-3">🔗 Separator Options:</label>
+                                <div class="ps-2">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="separator_type" id="commaSeparator" value="comma" checked>
+                                        <label class="form-check-label" for="commaSeparator">
+                                            <code class="bg-white px-2 py-1 rounded border">, </code> Comma + Space
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="separator_type" id="newlineSeparator" value="newline">
+                                        <label class="form-check-label" for="newlineSeparator">
+                                            <code class="bg-white px-2 py-1 rounded border">\n</code> New line
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="separator_type" id="customSeparator" value="custom">
+                                        <label class="form-check-label" for="customSeparator">
+                                            Custom:
+                                        </label>
+                                    </div>
+                                    <input type="text" id="custom_separator" class="form-control form-control-sm mt-2" placeholder="e.g., | or ;" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex flex-wrap gap-2 justify-content-center">
+                        <button type="button" onclick="convertValues()" class="btn btn-primary px-4">
+                            <i class="bi bi-arrow-right-circle"></i> Convert
+                        </button>
+                        <button type="button" onclick="loadSampleData()" class="btn btn-outline-info px-4">
+                            <i class="bi bi-magic"></i> Load Sample
+                        </button>
+                        <button type="button" onclick="clearForm()" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-arrow-clockwise"></i> Clear
+                        </button>
+                        <button type="button" onclick="copyToClipboard()" class="btn btn-outline-success px-4" id="copyButton">
+                            <i class="bi bi-clipboard"></i> Copy Output
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden field to safely pass server result to JavaScript -->
+<input type="hidden" id="serverResult" value="{{ result|tojson|e }}">
+
+<!-- Output Section Container - SAME ALIGNMENT AS INPUT CARD -->
+<div id="outputSectionContainer"></div>
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/character-enclose.css') }}">
+
+<script>
+// Main conversion function - CALLED DIRECTLY BY BUTTON
+function convertValues() {
+    // Get form values
+    const inputText = document.getElementById('input_text').value;
+    
+    if (!inputText.trim()) {
+        return false;
+    }
+    
+    // Get selected options
+    const enclosureRadios = document.getElementsByName('enclosure_type');
+    let enclosureType = 'double';
+    for(let radio of enclosureRadios) {
+        if(radio.checked) {
+            enclosureType = radio.value;
+            break;
+        }
+    }
+    
+    const separatorRadios = document.getElementsByName('separator_type');
+    let separatorType = 'comma';
+    for(let radio of separatorRadios) {
+        if(radio.checked) {
+            separatorType = radio.value;
+            break;
+        }
+    }
+    
+    let customSeparator = document.getElementById('custom_separator').value;
+    
+    // Parse input values - split by comma OR newline
+    let values = [];
+    const lines = inputText.split('\n');
+    for(let line of lines) {
+        if(line.trim()) {
+            // Split each line by comma
+            const parts = line.split(',');
+            for(let part of parts) {
+                if(part.trim()) {
+                    values.push(part.trim());
+                }
+            }
+        }
+    }
+    
+    if (values.length === 0) {
+        return false;
+    }
+    
+    // Apply enclosure
+    let enclosure = '';
+    switch(enclosureType) {
+        case 'double':
+            enclosure = '"';
+            break;
+        case 'single':
+            enclosure = "'";
+            break;
+        case 'backtick':
+            enclosure = '`';
+            break;
+    }
+    
+    const enclosedValues = values.map(v => `${enclosure}${v}${enclosure}`);
+    
+    // Apply separator
+    let separator = ', ';
+    if (separatorType === 'newline') {
+        separator = '\n';
+    } else if (separatorType === 'custom' && customSeparator.trim()) {
+        separator = customSeparator;
+    }
+    
+    const result = enclosedValues.join(separator);
+    
+    // Display output
+    displayOutput(result, values.length);
+    return false;
+}
+
+// Display output function - ONLY REDUCED SPACE BETWEEN HEADING AND CARD
+function displayOutput(result, valueCount) {
+    const outputContainer = document.getElementById('outputSectionContainer');
+    
+    const outputHtml = `
+        <div class="row mt-4">
+            <div class="col-lg-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <h4 class="mb-0" style="color: #28a745; font-weight: 600;">
+                                <i class="bi bi-check-circle-fill me-2" style="color: #28a745;"></i>
+                                Converted Output
+                            </h4>
+                            <span class="badge bg-success px-3 py-2 fs-6">
+                                ${valueCount} values
+                            </span>
+                        </div>
+                        
+                        <div class="output-container bg-white rounded-3">
+                            <textarea id="outputText" rows="6" class="form-control font-monospace" 
+                                      style="resize: none; font-size: 1rem; line-height: 1.6; font-family: 'Courier New', monospace; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; width: 100%;" 
+                                      readonly>${result}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    outputContainer.innerHTML = outputHtml;
+    
+    // Enable copy button
+    const copyButton = document.getElementById('copyButton');
+    if (copyButton) {
+        copyButton.disabled = false;
+    }
+}
+
+// Load sample data
+function loadSampleData() {
+    const sampleData = `apple, banana, cherry
+orange
+grape, mango
+peach
+strawberry, blueberry
+watermelon`;
+    
+    document.getElementById('input_text').value = sampleData;
+    
+    // Trigger conversion
+    convertValues();
+}
+
+// Clear form
+function clearForm() {
+    // Clear input textarea
+    document.getElementById('input_text').value = '';
+    
+    // Reset form options
+    document.getElementById('doubleQuote').checked = true;
+    document.getElementById('commaSeparator').checked = true;
+    document.getElementById('custom_separator').value = '';
+    document.getElementById('custom_separator').disabled = true;
+    
+    // Clear output section
+    document.getElementById('outputSectionContainer').innerHTML = '';
+}
+
+// Copy to clipboard
+function copyToClipboard() {
+    const outputTextarea = document.getElementById('outputText');
+    if (!outputTextarea || !outputTextarea.value.trim()) {
+        return;
+    }
+    
+    // Select text
+    outputTextarea.select();
+    outputTextarea.setSelectionRange(0, 99999);
+    
+    try {
+        // Try modern clipboard API
+        navigator.clipboard.writeText(outputTextarea.value).then(function() {
+            // Visual feedback
+            const copyButton = document.querySelector('button[onclick="copyToClipboard()"]');
+            if (copyButton) {
+                const originalHtml = copyButton.innerHTML;
+                copyButton.innerHTML = '<i class="bi bi-check"></i> Copied!';
+                copyButton.classList.remove('btn-success');
+                copyButton.classList.add('btn-outline-success');
+                
+                setTimeout(() => {
+                    copyButton.innerHTML = originalHtml;
+                    copyButton.classList.remove('btn-outline-success');
+                    copyButton.classList.add('btn-success');
+                }, 2000);
+            }
+        }).catch(function() {
+            // Fallback
+            document.execCommand('copy');
+        });
+    } catch (err) {
+        // Final fallback
+        document.execCommand('copy');
+    }
+}
+
+// Initialize on page load - SINGLE DOMContentLoaded LISTENER
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded - Character Enclose ready');
+    
+    // Handle custom separator field
+    const customSeparatorRadio = document.getElementById('customSeparator');
+    const customSeparatorField = document.getElementById('custom_separator');
+    
+    if (customSeparatorRadio && customSeparatorField) {
+        customSeparatorRadio.addEventListener('change', function() {
+            customSeparatorField.disabled = !this.checked;
+            if (this.checked) {
+                customSeparatorField.focus();
+            }
+        });
+        
+        // Also enable/disable based on other radios
+        document.querySelectorAll('input[name="separator_type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                customSeparatorField.disabled = !customSeparatorRadio.checked;
+            });
+        });
+    }
+    
+    // Auto-resize textareas
+    document.querySelectorAll('textarea').forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    });
+
+    // Load server-side result (if any) from hidden input
+    const resultInput = document.getElementById('serverResult');
+    if (resultInput && resultInput.value) {
+        try {
+            const resultText = JSON.parse(resultInput.value);
+            if (resultText && typeof displayOutput === 'function') {
+                const values = resultText.split(/[,\n]/).filter(v => v.trim().length > 0);
+                displayOutput(resultText, values.length);
+            }
+        } catch (e) {
+            console.error('Failed to parse server result', e);
+        }
+    }
+});
+</script>
+
+
+{% endblock %}

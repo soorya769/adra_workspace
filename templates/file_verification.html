@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-files"></i> File Verification</h2>
+        <p class="text-muted">Compare two files for content matching. Supports various formats and handles decimal variations.</p>
+    </div>
+</div>
+
+<!-- SINGLE CARD WITH TWO SECTIONS - PROPERLY SPACED -->
+<div class="card shadow-sm">
+    <!-- FIX 1: REMOVED "Upload Files" TEXT, ONLY ICON REMAINS -->
+    <div class="card-header bg-primary text-white">
+        <i class="bi bi-upload"></i>
+    </div>
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" id="fileCompareForm">
+            <!-- TWO COLUMNS WITH 30px GAP -->
+            <div style="display: flex; flex-wrap: wrap; gap: 30px; margin-bottom: 30px;">
+                
+                <!-- First File - WITH FIXED INPUT GROUP AND CLEAR BUTTON -->
+                <div style="flex: 1 1 calc(50% - 15px); min-width: 300px;">
+                    <div class="file-upload-card">
+                        <div class="file-upload-header">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <h5>First File</h5>
+                        </div>
+                        <div class="file-upload-body">
+                            <div class="mb-3">
+                                <label for="file1" class="form-label">
+                                    <strong>Select File 1</strong>
+                                    <span class="badge bg-danger">Required</span>
+                                </label>
+                                <!-- FIXED: Properly aligned input group with clear button -->
+                                <div class="input-group" style="display: flex; align-items: center; gap: 0;">
+                                    <input type="file" name="file1" id="file1" 
+                                           class="form-control" required 
+                                           accept=".csv,.txt,.xls,.xlsx,.tsv,.CSV,.TXT,.XLS,.XLSX"
+                                           style="border-top-right-radius: 0; border-bottom-right-radius: 0; height: 38px; border-right: none;">
+                                    <button type="button" class="btn btn-outline-secondary" 
+                                            onclick="clearFile('file1')"
+                                            style="border-top-left-radius: 0; border-bottom-left-radius: 0; height: 38px; display: flex; align-items: center; justify-content: center; padding: 0 12px; border-left: none;">
+                                        <i class="bi bi-x-circle" style="font-size: 14px;"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text" style="margin-top: 8px; color: #6c757d; display: flex; align-items: center;">
+                                    <i class="bi bi-info-circle me-1" style="font-size: 12px;"></i> 
+                                    <!-- CHANGED: Updated from 10MB to 50MB -->
+                                    Maximum size: 50MB
+                                </div>
+                            </div>
+                            
+                            <div class="file-preview" id="file1Preview">
+                                <small class="text-muted">No file selected</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second File - WITH FIXED INPUT GROUP AND CLEAR BUTTON -->
+                <div style="flex: 1 1 calc(50% - 15px); min-width: 300px;">
+                    <div class="file-upload-card">
+                        <div class="file-upload-header">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <h5>Second File</h5>
+                        </div>
+                        <div class="file-upload-body">
+                            <div class="mb-3">
+                                <label for="file2" class="form-label">
+                                    <strong>Select File 2</strong>
+                                    <span class="badge bg-danger">Required</span>
+                                </label>
+                                <!-- FIXED: Properly aligned input group with clear button -->
+                                <div class="input-group" style="display: flex; align-items: center; gap: 0;">
+                                    <input type="file" name="file2" id="file2" 
+                                           class="form-control" required 
+                                           accept=".csv,.txt,.xls,.xlsx,.tsv,.CSV,.TXT,.XLS,.XLSX"
+                                           style="border-top-right-radius: 0; border-bottom-right-radius: 0; height: 38px; border-right: none;">
+                                    <button type="button" class="btn btn-outline-secondary" 
+                                            onclick="clearFile('file2')"
+                                            style="border-top-left-radius: 0; border-bottom-left-radius: 0; height: 38px; display: flex; align-items: center; justify-content: center; padding: 0 12px; border-left: none;">
+                                        <i class="bi bi-x-circle" style="font-size: 14px;"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text" style="margin-top: 8px; color: #6c757d; display: flex; align-items: center;">
+                                    <i class="bi bi-info-circle me-1" style="font-size: 12px;"></i> 
+                                    <!-- CHANGED: Updated from 10MB to 50MB -->
+                                    Maximum size: 50MB
+                                </div>
+                            </div>
+                            
+                            <div class="file-preview" id="file2Preview">
+                                <small class="text-muted">No file selected</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons - Centered -->
+            <div style="display: flex; gap: 20px; justify-content: center; margin-top: 10px;">
+                <button type="submit" class="btn btn-primary" id="compareBtn">
+                    <i class="bi bi-files"></i> Compare Files
+                </button>
+                <button type="button" onclick="clearAllFiles()" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise"></i> Clear All
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Results Section - FULLY RESTORED -->
+<div id="resultsSection" class="mt-4">
+    {% if result %}
+        {% if result.status == 'success' %}
+            <div class="card shadow-sm border-success">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-8">
+                            <h4 class="text-success mb-2">{{ result.message }}</h4>
+                            <p class="mb-0">
+                                <i class="bi bi-check-lg"></i>
+                                The files contain identical data when ignoring row order and decimal formatting.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="match-badge">
+                                <i class="bi bi-check-all" style="font-size: 3rem;"></i>
+                                <div class="mt-2">
+                                    <span class="badge bg-success">100% Match</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-success-subtle">
+                                <div class="card-body">
+                                    <h6><i class="bi bi-file-earmark-text"></i> File 1 Details:</h6>
+                                    <p class="mb-1">
+                                        <strong>Rows:</strong> {{ result.file1_rows|default('N/A') }}
+                                    </p>
+                                    <p class="mb-1">
+                                        <strong>Unique Rows:</strong> {{ result.file1_unique_rows|default('N/A') }}
+                                    </p>
+                                    <p class="mb-0">
+                                        <strong>Status:</strong> 
+                                        <span class="badge bg-success">Verified</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-success-subtle">
+                                <div class="card-body">
+                                    <h6><i class="bi bi-file-earmark-text"></i> File 2 Details:</h6>
+                                    <p class="mb-1">
+                                        <strong>Rows:</strong> {{ result.file2_rows|default('N/A') }}
+                                    </p>
+                                    <p class="mb-1">
+                                        <strong>Unique Rows:</strong> {{ result.file2_unique_rows|default('N/A') }}
+                                    </p>
+                                    <p class="mb-0">
+                                        <strong>Status:</strong> 
+                                        <span class="badge bg-success">Verified</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        {% elif result.status == 'fail' %}
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                       
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-8">
+                            <h4 class="text-danger mb-2">{{ result.message }}</h4>
+                            <p class="mb-0">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                The files have different content. See details below to see the differences.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="mismatch-badge">
+                                <i class="bi bi-x-circle" style="font-size: 3rem;"></i>
+                                <div class="mt-2">
+                                    <span class="badge bg-danger">Mismatch Found</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Differences Summary -->
+                    <div class="card border-warning mb-4">
+                        <div class="card-header bg-warning-subtle">
+                            <i class="bi bi-clipboard-data"></i> Differences Summary
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="text-center p-3 bg-danger bg-opacity-10 rounded">
+                                        <h3 class="text-danger">{{ result.unique_to_file1|default(0) }}</h3>
+                                        <small>Rows only in File 1</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center p-3 bg-warning bg-opacity-10 rounded">
+                                        <h3 class="text-warning">{{ result.count_differences|default(0) }}</h3>
+                                        <small>Rows with different counts</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center p-3 bg-info bg-opacity-10 rounded">
+                                        <h3 class="text-info">{{ result.unique_to_file2|default(0) }}</h3>
+                                        <small>Rows only in File 2</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-danger-subtle">
+                                <div class="card-body">
+                                    <h6><i class="bi bi-file-earmark-x"></i> File 1 Analysis:</h6>
+                                    <p class="mb-1">
+                                        <strong>Total Rows:</strong> {{ result.file1_rows|default('N/A') }}
+                                    </p>
+                                    <p class="mb-1">
+                                        <strong>Unique Rows:</strong> {{ result.file1_unique_rows|default('N/A') }}
+                                    </p>
+                                    <p class="mb-0">
+                                        <strong>Status:</strong> 
+                                        <span class="badge bg-danger">Contains Differences</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-danger-subtle">
+                                <div class="card-body">
+                                    <h6><i class="bi bi-file-earmark-x"></i> File 2 Analysis:</h6>
+                                    <p class="mb-1">
+                                        <strong>Total Rows:</strong> {{ result.file2_rows|default('N/A') }}
+                                    </p>
+                                    <p class="mb-1">
+                                        <strong>Unique Rows:</strong> {{ result.file2_unique_rows|default('N/A') }}
+                                    </p>
+                                    <p class="mb-0">
+                                        <strong>Status:</strong> 
+                                        <span class="badge bg-danger">Contains Differences</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Debug Info -->
+                 
+                </div>
+            </div>
+            
+        {% elif result.status == 'error' %}
+            <div class="card shadow-sm border-warning">
+                <div class="card-header bg-warning text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-exclamation-triangle-fill"></i> 
+                            <strong>Processing Error</strong>
+                        </div>
+                        <span class="badge bg-light text-warning">{{ result.timestamp|default('Just now') }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-x-circle-fill text-warning" style="font-size: 4rem;"></i>
+                        <h4 class="text-warning mt-3">{{ result.message }}</h4>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-lightbulb"></i>
+                        <strong>Suggested Solutions:</strong>
+                        <ul class="mb-0">
+                            <li>Ensure both files are selected</li>
+                            <li>Check file formats (CSV, TXT, XLS, XLSX supported)</li>
+                            <li>Verify file size is under 50MB</li>
+                            <li>Make sure files are not corrupted</li>
+                            <li>Try re-uploading the files</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/file_verification.css') }}">
+
+<script>
+// File handling and interactivity
+document.addEventListener('DOMContentLoaded', function() {
+    // File input change handlers
+    document.getElementById('file1').addEventListener('change', function(e) {
+        updateFilePreview('file1', e.target.files[0]);
+    });
+    
+    document.getElementById('file2').addEventListener('change', function(e) {
+        updateFilePreview('file2', e.target.files[0]);
+    });
+    
+    // Form submission handler
+    document.getElementById('fileCompareForm').addEventListener('submit', function(e) {
+        const file1 = document.getElementById('file1').files[0];
+        const file2 = document.getElementById('file2').files[0];
+        
+        if (!file1 || !file2) {
+            e.preventDefault();
+            showToast('Please select both files before comparing.', 'warning');
+            return false;
+        }
+        
+        // CHANGED: Updated from 10MB to 50MB (50 * 1024 * 1024)
+        const maxSize = 50 * 1024 * 1024; // 50MB in bytes
+        if (file1.size > maxSize || file2.size > maxSize) {
+            e.preventDefault();
+            showToast('File size exceeds 50MB limit. Please upload smaller files.', 'danger');
+            return false;
+        }
+        
+        // Validate file types
+        const validExtensions = ['.csv', '.txt', '.xls', '.xlsx', '.tsv'];
+        const file1Ext = '.' + file1.name.split('.').pop().toLowerCase();
+        const file2Ext = '.' + file2.name.split('.').pop().toLowerCase();
+        
+        if (!validExtensions.includes(file1Ext) || !validExtensions.includes(file2Ext)) {
+            e.preventDefault();
+            showToast('Invalid file type. Please upload CSV, TXT, XLS, XLSX, or TSV files.', 'danger');
+            return false;
+        }
+        
+        return true;
+    });
+});
+
+// FIX: Updated function with filename truncation
+function updateFilePreview(inputId, file) {
+    const previewDiv = document.getElementById(inputId + 'Preview');
+    
+    if (file) {
+        const fileSize = formatFileSize(file.size);
+        const fileType = file.name.split('.').pop().toUpperCase();
+        const fileName = file.name;
+        
+        // Truncate filename if too long (show start + ... + end)
+        let displayName = fileName;
+        if (fileName.length > 30) {
+            displayName = fileName.substring(0, 15) + '...' + fileName.substring(fileName.length - 15);
+        }
+        
+        previewDiv.innerHTML = `
+            <div class="file-info" style="width: 100%; overflow: hidden;">
+                <div class="d-flex align-items-center" style="flex-wrap: wrap; gap: 8px;">
+                    <i class="bi bi-file-earmark-text fs-4 me-2 text-primary flex-shrink-0"></i>
+                    <div style="flex: 1; min-width: 0; overflow: hidden;">
+                        <strong class="d-block" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;" 
+                                title="${fileName}">
+                            ${displayName}
+                        </strong>
+                        <small class="text-muted d-block" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            ${fileSize} • ${fileType}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        previewDiv.innerHTML = '<small class="text-muted">No file selected</small>';
+    }
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function clearFile(inputId) {
+    document.getElementById(inputId).value = '';
+    updateFilePreview(inputId, null);
+    showToast('File cleared', 'info');
+}
+
+function clearAllFiles() {
+    clearFile('file1');
+    clearFile('file2');
+    document.getElementById('resultsSection').innerHTML = '';
+    showToast('All files cleared', 'info');
+}
+
+function showToast(message, type = 'info') {
+    // Create toast container if it doesn't exist
+    let toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+        toastContainer.style.zIndex = '1050';
+        document.body.appendChild(toastContainer);
+    }
+    
+    // Create toast
+    const toastId = 'toast-' + Date.now();
+    const toast = document.createElement('div');
+    toast.id = toastId;
+    toast.className = `toast align-items-center text-bg-${type} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi ${type === 'success' ? 'bi-check-circle' : 
+                              type === 'danger' ? 'bi-exclamation-circle' : 
+                              'bi-info-circle'} me-2"></i>
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" 
+                    data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Initialize and show toast
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    // Remove toast after it's hidden
+    toast.addEventListener('hidden.bs.toast', function () {
+        toast.remove();
+    });
+}
+</script>
+
+{% endblock %}

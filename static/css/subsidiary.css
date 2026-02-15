@@ -1,0 +1,78 @@
+/* Scoped only to Subsidiary Page */
+.subsidiary-page .form-group label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.subsidiary-page .form-control {
+    border-radius: 8px;
+    transition: .3s;
+}
+
+.subsidiary-page .subsidiary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.subsidiary-page .form-control:focus {
+    border-color: #0f7c77;
+    box-shadow: 0 0 0 .25rem rgba(15,124,119,.25);
+}
+
+.subsidiary-page .form-text {
+    font-size: .85rem;
+    margin-top: 5px;
+}
+
+.subsidiary-page .card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,.1);
+    transition: .3s;
+}
+
+.subsidiary-page .card:hover {
+    transform: translateY(-2px);
+}
+
+.subsidiary-page .badge {
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.subsidiary-page .btn-primary {
+    background: #0f7c77;
+    border-color: #0f7c77;
+}
+
+.subsidiary-page .btn-primary:hover {
+    background: #0c6965;
+    border-color: #0c6965;
+    transform: translateY(-2px);
+}
+
+/* Scrollbar */
+.subsidiary-page textarea::-webkit-scrollbar {
+    width: 6px;
+}
+.subsidiary-page textarea::-webkit-scrollbar-thumb {
+    background: #0f7c77;
+    border-radius: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .subsidiary-page .col-md-6,
+    .subsidiary-page .col-md-4 {
+        width: 100%;
+    }
+
+    .subsidiary-page .d-flex.gap-2 {
+        flex-direction: column;
+    }
+
+    .subsidiary-page .d-flex.gap-2 .btn {
+        width: 100%;
+    }
+}

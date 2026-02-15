@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Add Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+
+
+<!-- Welcome Section -->
+<div class="dashboard-header">
+    <div class="welcome-section d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h1 class="welcome-title">
+                <i class="bi bi-heart-fill me-2" style="color: #0f7c77;"></i>
+                Analytics Dashboard
+            </h1>
+            <p class="text-muted">
+                Real-time overview of your workspace performance and user activity.
+            </p>
+        </div>
+        <div class="d-flex align-items-center mt-3 mt-md-0" style="background: rgba(15,124,119,0.05); padding: 0.6rem 1.2rem; border-radius: 50px;">
+            <i class="bi bi-calendar-check me-2" style="color: #0f7c77;"></i>
+            <span id="currentDate"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards - Partners, Customers, Support Admins, Support Users -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-info">
+            <h3>0</h3>
+            <p>Total Partners</p>
+            <div class="stat-trend">
+                <span class="trend-up"><i class="bi bi-arrow-up-short"></i>+12</span>
+                <span style="color: #6c757d;">this month</span>
+            </div>
+        </div>
+        <div class="stat-icon">
+            <i class="bi bi-people-fill"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-info">
+            <h3>236</h3>
+            <p>Active Customers</p>
+            <div class="stat-trend">
+                <span class="trend-up"><i class="bi bi-arrow-up-short"></i>+18%</span>
+                <span style="color: #6c757d;">vs last month</span>
+            </div>
+        </div>
+        <div class="stat-icon">
+            <i class="bi bi-person-badge-fill"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-info">
+            <h3>25</h3>
+            <p>Sub Admins</p>
+            <div class="stat-trend">
+                <span class="trend-neutral"><i class="bi bi-dash"></i>0</span>
+                <span style="color: #6c757d;">no change</span>
+            </div>
+        </div>
+        <div class="stat-icon">
+            <i class="bi bi-shield-fill-check"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-info">
+            <h3>181</h3>
+            <p>Support Users</p>
+            <div class="stat-trend">
+                <span class="trend-up"><i class="bi bi-arrow-up-short"></i>+5</span>
+                <span style="color: #6c757d;">this week</span>
+            </div>
+        </div>
+        <div class="stat-icon">
+            <i class="bi bi-headset"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="charts-grid">
+    <!-- User Activity Chart (Last 7 Days) -->
+    <div class="chart-card">
+        <div class="chart-header">
+            <div class="chart-title">
+                <i class="bi bi-bar-chart-fill"></i>
+                User Activity (Last 7 Days)
+            </div>
+            <span class="badge" style="background: rgba(15,124,119,0.1); color: #0f7c77; padding: 0.5rem 1rem; border-radius: 50px;">
+                <i class="bi bi-dot-fill"></i>
+                +24% vs last week
+            </span>
+        </div>
+        <div class="chart-container">
+            <canvas id="activityChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Service Usage Distribution -->
+    <div class="chart-card">
+        <div class="chart-header">
+            <div class="chart-title">
+                <i class="bi bi-pie-chart-fill"></i>
+                Service Usage Distribution
+            </div>
+            <span class="badge" style="background: rgba(15,124,119,0.1); color: #0f7c77; padding: 0.5rem 1rem; border-radius: 50px;">
+                <i class="bi bi-calendar"></i>
+                This month
+            </span>
+        </div>
+        <div class="chart-container">
+            <canvas id="usageChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Metrics -->
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-icon">
+            <i class="bi bi-files"></i>
+        </div>
+        <div class="metric-content">
+            <div class="metric-label">File Verification</div>
+            <div class="d-flex align-items-center">
+                <span class="metric-value">1,284</span>
+                <span class="metric-trend trend-up"><i class="bi bi-arrow-up-short"></i>23%</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="metric-card">
+        <div class="metric-icon">
+            <i class="bi bi-quote"></i>
+        </div>
+        <div class="metric-content">
+            <div class="metric-label">Character Enclose</div>
+            <div class="d-flex align-items-center">
+                <span class="metric-value">3,591</span>
+                <span class="metric-trend trend-up"><i class="bi bi-arrow-up-short"></i>42%</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="metric-card">
+        <div class="metric-icon">
+            <i class="bi bi-compare"></i>
+        </div>
+        <div class="metric-content">
+            <div class="metric-label">Subsidiary Compare</div>
+            <div class="d-flex align-items-center">
+                <span class="metric-value">856</span>
+                <span class="metric-trend trend-up"><i class="bi bi-arrow-up-short"></i>15%</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="metric-card">
+        <div class="metric-icon">
+            <i class="bi bi-clock-history"></i>
+        </div>
+        <div class="metric-content">
+            <div class="metric-label">Avg Response Time</div>
+            <div class="d-flex align-items-center">
+                <span class="metric-value">0.8s</span>
+                <span class="metric-trend trend-down"><i class="bi bi-arrow-down-short"></i>12%</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+    <a href="/file-verification" class="action-btn">
+        <i class="bi bi-files"></i>
+        <span>Verify Files</span>
+    </a>
+    <a href="/character-enclose" class="action-btn">
+        <i class="bi bi-quote"></i>
+        <span>Enclose Text</span>
+    </a>
+    <a href="/subsidiary-compare" class="action-btn">
+        <i class="bi bi-compare"></i>
+        <span>Compare</span>
+    </a>
+</div>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+
+<script>
+// Set current date
+document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', { 
+    month: 'long', 
+    day: 'numeric', 
+    year: 'numeric' 
+});
+
+// Initialize charts after DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Activity Chart - Line Chart
+    const activityCtx = document.getElementById('activityChart').getContext('2d');
+    new Chart(activityCtx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'File Verification',
+                data: [65, 78, 82, 95, 110, 85, 92],
+                borderColor: '#0f7c77',
+                backgroundColor: 'rgba(15, 124, 119, 0.05)',
+                borderWidth: 2.5,
+                pointBackgroundColor: '#0f7c77',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                tension: 0.3,
+                fill: true
+            }, {
+                label: 'Character Enclose',
+                data: [45, 52, 58, 62, 70, 55, 68],
+                borderColor: '#17a2b8',
+                backgroundColor: 'rgba(23, 162, 184, 0.05)',
+                borderWidth: 2.5,
+                pointBackgroundColor: '#17a2b8',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 6,
+                        font: { size: 11 }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.03)' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // Usage Chart - Doughnut Chart
+    const usageCtx = document.getElementById('usageChart').getContext('2d');
+    new Chart(usageCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['File Verification', 'Character Enclose', 'Subsidiary Compare'],
+            datasets: [{
+                data: [45, 35, 20],
+                backgroundColor: ['#0f7c77', '#17a2b8', '#6c757d'],
+                borderWidth: 0,
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        padding: 15,
+                        font: { size: 11 }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+
+{% endblock %}
