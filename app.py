@@ -1,31 +1,48 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, session
 import os
 from collections import Counter
 
 app = Flask(__name__)
+app.secret_key = "my_secret_key" 
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # Login page route
-@app.route("/login")
+@app.route("/")
 def login():
     return render_template("login.html")
 
-# Home/Dashboard route
-@app.route("/")
-def home():
+@app.route("/dashboard")
+def dashboard():
+    if "user" not in session:
+        return redirect(url_for("login"))
     return render_template("index.html")
+
+@app.route("/login", methods=["POST"])
+def handle_login():
+    username = request.form.get("username")
+    password = request.form.get("password")
+
+    # Simple hardcoded authentication (replace with DB later)
+    if username == "admin" and password == "actionfi":
+        session["user"] = username
+        return redirect(url_for("dashboard"))
+    else:
+        return render_template("login.html", error="Invalid credentials")
 
 @app.route("/file-verification", methods=["GET", "POST"])
 def file_verification():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
     result = None
 
     if request.method == "POST":
         f1 = request.files.get("file1")
         f2 = request.files.get("file2")
-
+    
         if not f1 or not f2:
             result = {"status": "error", "message": "Both files required"}
         else:
@@ -97,6 +114,10 @@ def character_enclose():
         result=result,
         input_text=input_text
     )
+@app.route("/logout")
+def logout():
+    session.pop("user", None)
+    return redirect(url_for("login"))
 
 
 @app.route("/subsidiary-compare", methods=["GET", "POST"])
