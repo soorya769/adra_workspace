@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Redirect if already logged in
     if (sessionStorage.getItem("isAuthenticated") === "true") {
-        window.location.href = "/";
+        window.location.href = "/dashboard";
     }
 
     form.addEventListener("submit", (e) => {
@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.setItem("username", username);
         sessionStorage.setItem("loginTime", new Date().toISOString());
 
-        window.location.href = "/";
+        window.location.href = "/dashboard";
     }
 
     function showError(message) {

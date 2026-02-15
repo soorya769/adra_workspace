@@ -3,7 +3,7 @@ import os
 from collections import Counter
 
 app = Flask(__name__)
-app.secret_key = "my_secret_key" 
+app.secret_key = "your_secret_key_here" 
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -16,27 +16,11 @@ def login():
 
 @app.route("/dashboard")
 def dashboard():
-    if "user" not in session:
-        return redirect(url_for("login"))
     return render_template("index.html")
 
-@app.route("/login", methods=["POST"])
-def handle_login():
-    username = request.form.get("username")
-    password = request.form.get("password")
-
-    # Simple hardcoded authentication (replace with DB later)
-    if username == "admin" and password == "actionfi":
-        session["user"] = username
-        return redirect(url_for("dashboard"))
-    else:
-        return render_template("login.html", error="Invalid credentials")
 
 @app.route("/file-verification", methods=["GET", "POST"])
 def file_verification():
-    if "user" not in session:
-        return redirect(url_for("login"))
-
     result = None
 
     if request.method == "POST":
@@ -114,10 +98,6 @@ def character_enclose():
         result=result,
         input_text=input_text
     )
-@app.route("/logout")
-def logout():
-    session.pop("user", None)
-    return redirect(url_for("login"))
 
 
 @app.route("/subsidiary-compare", methods=["GET", "POST"])
